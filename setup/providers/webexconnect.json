@@ -1,0 +1,36 @@
+{
+  "deployment": {
+    "enabled": true,
+    "providerName": "webexconnect",
+    "languages": ["javascript"],
+    "supportedEndpointRegions": ["global"],
+    "authentication": {
+      "mode": "apiKey",
+      "keyVaultSecretName": "webexconnect-api-key"
+    },
+    "environmentVariables": {
+      "WEBEXCONNECT_SMS_URL": {
+        "displayName": "Webex Connect SMS flow webhook URL",
+        "description": "Inbound Custom API trigger URL of the Connect flow that sends the SMS.",
+        "source": "input",
+        "required": true,
+        "validation": { "type": "pattern", "pattern": "^https://[A-Za-z0-9.-]+/[^\\s#]+$" }
+      },
+      "WEBEXCONNECT_VOICE_URL": {
+        "displayName": "Webex Connect voice flow webhook URL",
+        "description": "Inbound Custom API trigger URL of the Connect flow that places the voice call.",
+        "source": "input",
+        "required": true,
+        "validation": { "type": "pattern", "pattern": "^https://[A-Za-z0-9.-]+/[^\\s#]+$" }
+      }
+    },
+    "routes": {
+      "global": {
+        "smsEndpoint": "https://hooks.us.webexconnect.io/events/Z98OR24X1T",
+        "voiceEndpoint": "https://hooks.us.webexconnect.io/events/IURFQ5I6YY",
+        "timeoutMilliseconds": 2000,
+        "retryIntervalSeconds": 30
+      }
+    }
+  }
+}

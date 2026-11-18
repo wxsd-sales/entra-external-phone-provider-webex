@@ -118,7 +118,7 @@ try {
                 $selected = Resolve-EppApplicationProvider -Inputs (New-TestInputs) -AssetDirectory $script:AssetDirectory
                 Assert ($selected -ceq 'telesign' -and $script:Prompts[0] -ceq 'Provider name') 'No configuration must prompt for a provider name.'
                 Assert (($script:Messages -join "`n").Contains('configuration is included in the deployment approval')) 'Do not configure an existing app before deployment approval.'
-                Assert ($script:Messages -contains 'Provider names: Infobip, Soprano, Telesign') 'List provider names alphabetically, independently of catalog order.'
+                Assert ($script:Messages -contains 'Provider names: Infobip, Soprano, Telesign, Webex Connect') 'List provider names alphabetically, independently of catalog order.'
                 Assert ($script:Patches.Count -eq 0) 'Provider resolution is read-only.'
                 if ($audience -ceq 'AzureADMyOrg') {
                     Assert ($script:RestrictionReads -eq 0) 'Choosing a provider for a single-tenant app must not require beta audience restrictions.'
