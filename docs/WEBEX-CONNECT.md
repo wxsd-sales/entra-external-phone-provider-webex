@@ -21,8 +21,8 @@ Each flow starts with an inbound **Custom API / webhook trigger** and receives t
 - **SMS flow:** trigger -> SMS node (`to`, `text`) -> end.
 - **Voice flow:** trigger -> Voice node with Text-to-Speech (`to`, `text`, `locale`) -> end.
 - Copy each flow's webhook URL. Enable API-key auth on the trigger and create a key.
-- Keep the trigger's default reply (`{"transactionId": "..."}`), which the adapter treats as "accepted".
-  A flow may instead return `{"status": "accepted|queued"}`, `{"status": "blocked"}` or `{"status": "failed"}`.
+- Keep the trigger's default reply, e.g. `{"response":[{"code":"1002","description":"Queued","transid":"..."}]}`.
+  Code `1001`/`1002` means accepted. Any other code (such as `7001` Authentication failed) is a failure.
 
 Example webhook URLs for the CoE test flows (profile defaults):
 SMS `https://hooks.us.webexconnect.io/events/Z98OR24X1T`, voice `https://hooks.us.webexconnect.io/events/IURFQ5I6YY`.
@@ -49,9 +49,9 @@ paste the Connect API key and leave the version **enabled**.
 
 | Connect result | Function returns |
 |---|---|
-| 2xx + `transactionId` / accepted status | 200 |
-| `status: blocked` | 422 |
-| `status: failed`, unknown body, invalid JSON | 502 |
+| 2xx + response code `1001`/`1002` (Queued) | 200 |
+| `status: blocked` (custom flow reply) | 422 |
+| Other Connect codes, unknown body, invalid JSON | 502 |
 | Connect 429 | 429 |
 | Connect other 4xx | 400 |
 

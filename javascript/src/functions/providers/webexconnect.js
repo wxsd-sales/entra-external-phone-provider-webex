@@ -4,6 +4,8 @@ const { OUTCOME, ProviderResult, classifyFailure } = require('../providerResult'
 const { buildVoiceMessage } = require('../voiceMessage');
 
 // Status values a Webex Connect flow may return in its (optional) webhook response.
+// Connect result codes meaning the request was accepted (1002 = Queued).
+const ACCEPTED_CODES = new Set(['1001', '1002']);
 const SUCCESS = new Set(['ACCEPTED', 'QUEUED', 'SUCCESS', 'SENT', 'PENDING']);
 const BLOCKED = new Set(['BLOCKED', 'DENIED', 'FRAUD']);
 const REJECTED = new Set(['FAILED', 'REJECTED', 'ERROR', 'UNDELIVERABLE']);
@@ -54,17 +56,25 @@ const provider = Object.freeze({
     },
 
     interpretResponse(response) {
-        const json = response.json && typeof response.json === 'object' ? response.json : null;
-        const status = typeof json?.status === 'string' ? json.status.trim().toUpperCase() : null;
-        const transactionId = typeof json?.transactionId === 'string' ? json.transactionId : null;
+        // Connect replies {"response":[{"code":"1002","description":"Queued","transid":"..."}]}
+        // (an object instead of an array on errors, e.g. code 7001 "Authentication failed").
+        const raw = response.json?.response;
+        const item = Array.isArray(raw) ? raw[0] : raw;
+        const entry = item && typeof item === 'object' ? item : null;
+        const code = typeof entry?.code === 'string' ? entry.code.trim() : null;
+        const description = typeof entry?.description === 'string' ? entry.description : null;
+        const transactionId = typeof entry?.transid === 'string' ? entry.transid : null;
+        const status = typeof response.json?.status === 'string' ? response.json.status.trim().toUpperCase() : null;
 
-        // A 2xx with a transactionId (Connect's default webhook reply) or a known success status is acceptance.
         let outcome = OUTCOME.FAIL;
         let recognized = false;
         if (BLOCKED.has(status)) { outcome = OUTCOME.BLOCK; recognized = true; }
-        else if (REJECTED.has(status)) { recognized = true; }
-        else if (SUCCESS.has(status) || (status === null && transactionId)) {
-            outcome = OUTCOME.CONTINUE; recognized = true;
+        else if (code !== null) {
+            recognized = true;
+            if (ACCEPTED_CODES.has(code)) outcome = OUTCOME.CONTINUE;
+        } else if (status !== null) {
+            recognized = SUCCESS.has(status) || REJECTED.has(status);
+            if (SUCCESS.has(status)) outcome = OUTCOME.CONTINUE;
         }
         if (!response.ok && outcome === OUTCOME.CONTINUE) outcome = OUTCOME.FAIL;
 
@@ -73,8 +83,9 @@ const provider = Object.freeze({
             statusRecognized: recognized,
             providerHttpStatus: response.providerHttpStatus,
             providerMessageId: transactionId,
-            providerStatusName: status ?? (transactionId ? 'ACCEPTED' : null),
-            providerStatusDescription: typeof json?.message === 'string' ? json.message : null,
+            providerStatusName: code ?? status,
+            providerStatusCode: code,
+            providerStatusDescription: description,
             failureReason: classifyFailure({
                 providerHttpStatus: response.providerHttpStatus,
                 outcome,

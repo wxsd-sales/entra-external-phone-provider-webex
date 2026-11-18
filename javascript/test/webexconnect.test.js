@@ -61,8 +61,17 @@ test('rejects non-E.164 recipient and unsupported channel', () => {
     assert.throws(() => provider.createRequest({ ...base, channel: 'fax' }), /unsupported channel/);
 });
 
-test('transactionId or accepted status continues', () => {
-    for (const json of [{ transactionId: 't1' }, { status: 'queued' }, { status: 'Accepted', transactionId: 't2' }]) {
+test('real Connect replies: 1002 Queued continues, 7001 fails', () => {
+    const queued = provider.interpretResponse(res({ response: [{ code: '1002', description: 'Queued', transid: 't-1' }] }));
+    assert.deepEqual([queued.outcome, queued.httpStatus, queued.providerMessageId], [OUTCOME.CONTINUE, 200, 't-1']);
+    const auth = provider.interpretResponse(res({ response: { code: '7001', description: 'Authentication failed.', transid: 'x' } }));
+    assert.deepEqual([auth.outcome, auth.httpStatus, auth.failureReason], [OUTCOME.FAIL, 502, 'provider_rejected']);
+    const http = provider.interpretResponse(res({ response: [{ code: '1002', transid: 't' }] }, 500));
+    assert.equal(http.httpStatus, 502);
+});
+
+test('simple status bodies still supported', () => {
+    for (const json of [{ status: 'queued' }, { status: 'Accepted' }]) {
         const r = provider.interpretResponse(res(json, 202));
         assert.equal(r.outcome, OUTCOME.CONTINUE);
         assert.equal(r.httpStatus, 200);
@@ -80,7 +89,7 @@ test('blocked maps to 422, failed maps to 502', () => {
 test('unrecognized body, HTTP errors, and invalid JSON fail safely', () => {
     assert.equal(provider.interpretResponse(res({})).httpStatus, 502);
     assert.equal(provider.interpretResponse(res({}, 429)).httpStatus, 429);
-    assert.equal(provider.interpretResponse(res({ transactionId: 't' }, 401)).httpStatus, 400);
+    assert.equal(provider.interpretResponse(res({ status: 'queued' }, 401)).httpStatus, 400);
     const invalid = provider.interpretResponse(res(null, 200, false));
     assert.deepEqual([invalid.httpStatus, invalid.failureReason], [502, 'invalid_provider_json']);
 });
