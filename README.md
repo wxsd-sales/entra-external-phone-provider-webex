@@ -7,6 +7,9 @@ that use **OAuth through managed identity federation**.
 Guided setup deploys one regional endpoint with one provider. Choose JavaScript, C#, or Python;
 JavaScript is the default.
 
+**Webex Connect provider:** to deliver OTPs through Cisco Webex Connect, start with the
+[Webex Connect quick start](docs/WEBEX-CONNECT-QUICKSTART.md).
+
 ## Quick start
 
 **[Start onboarding: download and run the setup script](docs/GETTING-STARTED.md#2-download-and-run-the-setup-script)**
