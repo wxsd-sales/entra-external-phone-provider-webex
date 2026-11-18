@@ -24,6 +24,18 @@ Each flow starts with an inbound **Custom API / webhook trigger** and receives t
 - Keep the trigger's default reply (`{"transactionId": "..."}`), which the adapter treats as "accepted".
   A flow may instead return `{"status": "accepted|queued"}`, `{"status": "blocked"}` or `{"status": "failed"}`.
 
+Example webhook URLs for the CoE test flows (profile defaults):
+SMS `https://hooks.us.webexconnect.io/events/Z98OR24X1T`, voice `https://hooks.us.webexconnect.io/events/IURFQ5I6YY`.
+
+Example body (SMS):
+
+```json
+{"channel":"sms","to":"+15551234567","text":"Your code is 012345.","locale":"en-US","correlationId":"b1c2d3e4-0000-0000-0000-000000000000"}
+```
+
+Example body (voice): same fields, with `"channel":"voice"` and
+`"text":"Your code is 0, 1, 2, 3, 4, 5. Your code is 0, 1, 2, 3, 4, 5."`.
+
 ## 2. Deploy
 
 ```powershell

@@ -26,8 +26,8 @@
     },
     "routes": {
       "global": {
-        "smsEndpoint": "https://hooks.us.webexconnect.io/events/REPLACE-WITH-SMS-TRIGGER-ID",
-        "voiceEndpoint": "https://hooks.us.webexconnect.io/events/REPLACE-WITH-VOICE-TRIGGER-ID",
+        "smsEndpoint": "https://hooks.us.webexconnect.io/events/Z98OR24X1T",
+        "voiceEndpoint": "https://hooks.us.webexconnect.io/events/IURFQ5I6YY",
         "timeoutMilliseconds": 2000,
         "retryIntervalSeconds": 30
       }
